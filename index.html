@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CodeGuard AI</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>🛡️ CodeGuard AI</h1>
+
+        <p class="subtitle">
+            Automated Code Quality & Bug Severity Predictor
+        </p>
+
+        <div class="code-box">
+
+            <textarea id="codeInput" rows="18" placeholder="Paste your Python code here..."></textarea>
+
+            <button onclick="analyzeCode()">
+                🔍 Analyze Code
+            </button>
+
+        </div>
+
+
+        <div class="results">
+
+            <h2>Analysis Results</h2>
+
+            <div id="codeHighlight"></div>
+
+            <div id="result"></div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        async function analyzeCode() {
+
+            const code = document.getElementById("codeInput").value;
+
+            if (!code.trim()) {
+                alert("Please paste some Python code first!");
+                return;
+            }
+
+            try {
+
+                const response = await fetch("http://127.0.0.1:8000/analyze", {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        code: code
+                    })
+                });
+
+                const data = await response.json();
+
+                document.getElementById("result").innerHTML =
+
+                    "<h3>Overall Risk Score: " +
+                    data.score +
+                    "/100</h3>" +
+
+                    "<h3>Severity: " +
+                    data.severity +
+                    "</h3>" +
+
+                    "<h3>Detected Issues:</h3>" +
+
+                    "<p>🔴 Critical: " + data.critical + "</p>" +
+
+                    "<p>🟠 High: " + data.high + "</p>" +
+
+                    "<p>🟡 Medium: " + data.medium + "</p>" +
+
+                    "<ul>" +
+
+                    (data.issues.length > 0
+                        ? data.issues.map(issue => "<li>" + issue + "</li>").join("")
+                        : "<li>✅ No major issues detected</li>"
+                    ) +
+
+                    "</ul>" +
+
+                    "<h3>🤖 AI Fix Suggestions</h3>" +
+
+                    (
+                        data.fixes.length > 0
+                            ? data.fixes.map(fix =>
+                                "<p>💡 " + fix + "</p>"
+                            ).join("")
+                            : "<p>✅ No fixes needed!</p>"
+                    );
+
+
+                document.getElementById("codeHighlight").innerHTML =
+
+                    "<h3>📊 Code Quality Metrics</h3>" +
+
+                    "<p>📏 Lines of Code: " +
+                    data.lines +
+                    "</p>";
+
+            }
+
+            catch (error) {
+
+                document.getElementById("result").innerHTML =
+
+                    "<p>❌ Could not connect to CodeGuard AI backend.</p>" +
+
+                    "<p>Make sure the FastAPI server is running.</p>";
+
+                console.error(error);
+
+            }
+
+        }
+    </script>
+
+</body>
+
+</html>
